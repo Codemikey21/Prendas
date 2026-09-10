@@ -3,8 +3,12 @@ from pathlib import Path
 import numpy as np
 import streamlit as st
 from PIL import Image, ImageOps
-from streamlit_drawable_canvas import st_canvas
 from tensorflow import keras
+
+try:
+    from streamlit_drawable_canvas import st_canvas
+except Exception:
+    st_canvas = None
 
 
 st.set_page_config(
@@ -78,19 +82,31 @@ left_col, right_col = st.columns(2)
 
 with left_col:
     st.subheader("1) Dibuja una prenda")
-    canvas_result = st_canvas(
-        fill_color="rgba(0, 0, 0, 0)",
-        stroke_width=12,
-        stroke_color="#FFFFFF",
-        background_color="#000000",
-        width=280,
-        height=280,
-        drawing_mode="freedraw",
-        display_toolbar=True,
-        key="draw_canvas",
-    )
+    canvas_result = None
 
-    draw_button = st.button("Predecir con el dibujo", key="predict_draw")
+    if st_canvas is not None:
+        try:
+            canvas_result = st_canvas(
+                fill_color="rgba(0, 0, 0, 0)",
+                stroke_width=12,
+                stroke_color="#FFFFFF",
+                background_color="#000000",
+                width=280,
+                height=280,
+                drawing_mode="freedraw",
+                display_toolbar=True,
+                key="draw_canvas",
+            )
+        except Exception:
+            st.warning(
+                "El canvas no está disponible en esta versión de Streamlit. Puedes usar la opción de subir una imagen."
+            )
+    else:
+        st.info(
+            "El canvas no está disponible en esta distribución. Sube una imagen para hacer la predicción."
+        )
+
+    draw_button = st.button("Predecir con el dibujo", key="predict_draw") if st_canvas is not None else False
 
 with right_col:
     st.subheader("2) Sube una imagen")
